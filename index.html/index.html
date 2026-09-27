@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f1c3f">
+<meta name="description" content="Balloon Rise - เกมอาร์เคดลากโล่ป้องกันลูกโป่งลอยฟ้า">
+<title>Balloon Rise</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Game Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- ===================== HUD (in-game) ===================== -->
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <button id="btn-pause" class="icon-btn" aria-label="pause">❚❚</button>
+      <div class="hud-stats">
+        <div class="hud-score"><span id="hud-score">0</span></div>
+        <div class="hud-sub">
+          <span class="hud-chip">📏 <span id="hud-distance">0</span>m</span>
+          <span class="hud-chip">🪙 <span id="hud-coins">0</span></span>
+        </div>
+      </div>
+      <div class="combo-wrap">
+        <div id="combo-badge" class="combo-badge hidden">
+          <span>COMBO</span>
+          <strong id="hud-combo">x1</strong>
+        </div>
+      </div>
+    </div>
+    <div id="powerup-bar" class="powerup-bar"></div>
+  </div>
+
+  <!-- Aim hint ring (first play) -->
+  <div id="aim-hint" class="aim-hint hidden">
+    <div class="aim-ring"></div>
+    <p>ลากนิ้วที่ไหนก็ได้บนจอเพื่อบังคับลูกโป่ง โล่จะหันป้องกันสิ่งกีดขวางใกล้ตัวให้เอง</p>
+  </div>
+
+  <!-- ===================== MAIN MENU ===================== -->
+  <div id="screen-menu" class="screen">
+    <div class="menu-bg-decor" aria-hidden="true"></div>
+    <div class="logo-wrap">
+      <div class="logo-balloon">🎈</div>
+      <h1 class="game-title">BALLOON<span>RISE</span></h1>
+      <p class="game-tagline">ลอยสูง ปัดป้อง เอาตัวรอด</p>
+    </div>
+
+    <div class="menu-currency">
+      <span class="coin-pill">🪙 <span id="menu-coins">0</span></span>
+      <span class="coin-pill">🏆 <span id="menu-best">0</span></span>
+    </div>
+
+    <div class="menu-buttons">
+      <button id="btn-play" class="btn btn-primary btn-xl">▶ เล่นเกม</button>
+      <div class="menu-row">
+        <button id="btn-shop" class="btn btn-secondary">🛍️ ร้านค้า</button>
+        <button id="btn-achievements" class="btn btn-secondary">🏅 ความสำเร็จ</button>
+      </div>
+      <div class="menu-row">
+        <button id="btn-missions" class="btn btn-secondary">📅 ภารกิจประจำวัน<span id="mission-dot" class="notif-dot hidden"></span></button>
+        <button id="btn-settings" class="btn btn-secondary">⚙️ ตั้งค่า</button>
+      </div>
+      <div class="menu-row">
+        <button id="btn-history" class="btn btn-secondary">📜 สถิติ &amp; ประวัติการเล่น</button>
+      </div>
+    </div>
+    <p class="menu-footer">PWA · เล่นออฟไลน์ได้ · บันทึกอัตโนมัติ</p>
+  </div>
+
+  <!-- ===================== DIFFICULTY SELECT ===================== -->
+  <div id="screen-difficulty" class="screen hidden">
+    <div class="screen-header">
+      <button class="btn-back" data-back="screen-menu">←</button>
+      <h2>เลือกระดับความยาก</h2>
+    </div>
+    <div id="difficulty-list" class="difficulty-list"></div>
+  </div>
+
+  <!-- ===================== SHOP ===================== -->
+  <div id="screen-shop" class="screen hidden">
+    <div class="screen-header">
+      <button class="btn-back" data-back="screen-menu">←</button>
+      <h2>ร้านค้า</h2>
+      <span class="coin-pill small">🪙 <span id="shop-coins">0</span></span>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="balloons">ลูกโป่ง</button>
+      <button class="tab-btn" data-tab="shields">โล่</button>
+      <button class="tab-btn" data-tab="scenes">ฉากหลัง</button>
+    </div>
+    <div id="shop-grid" class="shop-grid"></div>
+  </div>
+
+  <!-- ===================== ACHIEVEMENTS ===================== -->
+  <div id="screen-achievements" class="screen hidden">
+    <div class="screen-header">
+      <button class="btn-back" data-back="screen-menu">←</button>
+      <h2>ความสำเร็จ</h2>
+    </div>
+    <div id="achievements-list" class="list-panel"></div>
+  </div>
+
+  <!-- ===================== STATS & HISTORY ===================== -->
+  <div id="screen-history" class="screen hidden">
+    <div class="screen-header">
+      <button class="btn-back" data-back="screen-menu">←</button>
+      <h2>สถิติ &amp; ประวัติการเล่น</h2>
+    </div>
+
+    <div id="stats-summary" class="stats-summary"></div>
+
+    <div class="history-header">
+      <h3>ประวัติการเล่นแต่ละครั้ง</h3>
+      <button id="btn-clear-history" class="btn btn-danger small">🗑️ ล้างทั้งหมด</button>
+    </div>
+    <div id="history-list" class="list-panel"></div>
+  </div>
+
+  <!-- ===================== DAILY MISSIONS ===================== -->
+  <div id="screen-missions" class="screen hidden">
+    <div class="screen-header">
+      <button class="btn-back" data-back="screen-menu">←</button>
+      <h2>ภารกิจประจำวัน</h2>
+    </div>
+    <p class="missions-reset-note">รีเซ็ตใน <span id="missions-reset-timer">--:--:--</span></p>
+    <div id="missions-list" class="list-panel"></div>
+  </div>
+
+  <!-- ===================== SETTINGS ===================== -->
+  <div id="screen-settings" class="screen hidden">
+    <div class="screen-header">
+      <button class="btn-back" data-back="screen-menu">←</button>
+      <h2>ตั้งค่า</h2>
+    </div>
+    <div class="settings-list">
+      <div class="setting-row">
+        <span>🔊 เสียงเอฟเฟกต์</span>
+        <label class="switch"><input type="checkbox" id="toggle-sfx" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span>🎵 เพลงพื้นหลัง</span>
+        <label class="switch"><input type="checkbox" id="toggle-music" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span>📳 การสั่น</span>
+        <label class="switch"><input type="checkbox" id="toggle-vibrate" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span>⛶ เต็มจอ</span>
+        <button id="btn-fullscreen" class="btn btn-secondary small">เปิด</button>
+      </div>
+      <button id="btn-reset-save" class="btn btn-danger">รีเซ็ตข้อมูลเกมทั้งหมด</button>
+    </div>
+  </div>
+
+  <!-- ===================== PAUSE OVERLAY ===================== -->
+  <div id="screen-pause" class="screen overlay-screen hidden">
+    <div class="panel">
+      <h2>หยุดชั่วคราว</h2>
+      <div class="panel-buttons">
+        <button id="btn-resume" class="btn btn-primary">▶ เล่นต่อ</button>
+        <button id="btn-restart" class="btn btn-secondary">🔄 เริ่มใหม่</button>
+        <button id="btn-quit" class="btn btn-secondary">🏠 เมนูหลัก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== GAME OVER ===================== -->
+  <div id="screen-gameover" class="screen overlay-screen hidden">
+    <div class="panel">
+      <h2 id="gameover-title">💥 เกมจบ!</h2>
+      <div class="gameover-stats">
+        <div class="go-stat"><span>คะแนน</span><strong id="go-score">0</strong></div>
+        <div class="go-stat"><span>ระยะทาง</span><strong id="go-distance">0m</strong></div>
+        <div class="go-stat"><span>คอมโบสูงสุด</span><strong id="go-combo">x0</strong></div>
+        <div class="go-stat"><span>เหรียญที่ได้</span><strong id="go-coins">+0</strong></div>
+      </div>
+      <p id="go-best-badge" class="best-badge hidden">🏆 สถิติใหม่!</p>
+      <div class="panel-buttons">
+        <button id="btn-retry" class="btn btn-primary">🔄 ลองอีกครั้ง</button>
+        <button id="btn-gameover-menu" class="btn btn-secondary">🏠 เมนูหลัก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast for achievement/mission unlocks -->
+  <div id="toast" class="toast hidden"></div>
+
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/data.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
